@@ -2,11 +2,15 @@ import os
 import numpy as np
 import torch
 import glob
+from torchvision import transforms
 from torch.utils.data import Dataset
-from PIL import Image
+import matplotlib.pyplot as plt
+from PIL import Image,ImageOps
+# from albumentations.pytorch import ToTensor
+# from albumentations import HorizontalFlip, ShiftScaleRotate, Normalize, Resize, Compose, GaussNoise
 import cv2
-from .transform import get_transform
 
+transform = transforms.Compose([transforms.ToPILImage(),transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),transforms.ToTensor()])
 
 class CustomDataset(Dataset):
 
@@ -17,48 +21,50 @@ class CustomDataset(Dataset):
         self.img_dir = img_dir
         self.mask_dir = mask_dir
         self.phase = phase
-        self.transform = get_transform(phase)
-        # self.ids = [path for path in os.listdir(self.img_dir)]
+        # self.transform = get_transform(phase)
+        self.transform = transform
 
     def __len__(self):
-        # return len(self.ids)
         return len(self.fname)
 
-    # @classmethod
-    # def preprocess(cls, pil_img):
-    #     pil_image = pil_img.resize((128, 128))
+    @classmethod
+    def preprocess(cls, img):
 
-    #     img_nd = np.array(pil_img)
+        img = img.resize((112,112))
 
-    #     # HWC to CHW
-    #     img_trans = img_nd.transpose((2, 0, 1))
-    #     if img_trans.max() > 1:
-    #         img_trans = img_trans/255
+        img = np.array(img)
 
-    #     return img_trans
+        if len(img.shape) == 2:
+            img = np.expand_dims(img,axis=2)
+
+        # # # HWC to CHW
+        img = img.transpose((2, 0, 1))
+        if img.max() > 1:
+            img = img/255
+
+        return img
 
     def __getitem__(self, idx):
         img_path = self.fname[idx]
         mask_path = self.fname1[idx]
 
-        img = cv2.imread(img_path)
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        img = Image.open(img_path)
+        mask = Image.open(mask_path)
 
-        # img = Image.open(img_file)
-        # mask = Image.open(mask_file)
-        # img = self.preprocess(img)
-        # mask = self.preprocess(mask)
+        img_aug = self.preprocess(img)
+        mask_aug = self.preprocess(mask)
 
-        augmentation = self.transform(image=img, mask=mask)
-        img_aug = augmentation['image']
-        mask_aug = augmentation['mask']
+        print(type(img_aug))
+
+        # print(type(mask_aug))
+        
+        img_aug = self.transform(img_aug)
+            
+        # mask_aug = self.transform(mask)
 
         return {
             'image': img_aug,
-            'mask': mask_aug
+            'mask': mask_aug,
+            'image_path' : img_path,
+            "mask_path" : mask_path,
         }
-
-        # return {
-        #     'image': torch.from_numpy(img).type(torch.FloatTensor),
-        #     'mask': torch.from_numpy(mask).type(torch.FloatTensor)
-        # }

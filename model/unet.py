@@ -1,29 +1,30 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 class DoubleConv(nn.Module):
 
     def __init__(self, in_channels, out_channels):
-        super().__init__()
+        super(DoubleConv,self).__init__()
         self.double_conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
 
-    def forward(x):
+    def forward(self, x):
         return self.double_conv(x)
 
 
 class Down(nn.Module):
 
     def __init__(self, in_channels, out_channels):
-        super().__init__()
+        super(Down,self).__init__()
         self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
             DoubleConv(in_channels, out_channels)
@@ -36,7 +37,7 @@ class Down(nn.Module):
 class Up(nn.Module):
 
     def __init__(self, in_channels, out_channels):
-        super().__init__()
+        super(Up,self).__init__()
 
         self.up = nn.ConvTranspose2d(
             in_channels, in_channels//2, kernel_size=2, stride=2)
@@ -57,7 +58,7 @@ class Up(nn.Module):
 class OutConv(nn.Module):
 
     def __init__(self, in_channels, out_channels):
-        super().__init__()
+        super(OutConv, self).__init__()
 
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
 
@@ -65,9 +66,9 @@ class OutConv(nn.Module):
         return self.conv(x)
 
 
-class Unet(nn.Module):
+class UNet(nn.Module):
     def __init__(self, n_channels, n_classes):
-        super(Unet, self).__init__()
+        super(UNet, self).__init__()
         self.n_channels = n_channels
         self.n_classes = n_classes
 
@@ -84,7 +85,7 @@ class Unet(nn.Module):
 
     def forward(self, x):
         x1 = self.inc(x)
-        x2 = self.down1(x)
+        x2 = self.down1(x1)
         x3 = self.down2(x2)
         x4 = self.down3(x3)
         x5 = self.down4(x4)

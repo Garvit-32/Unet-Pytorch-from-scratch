@@ -1,3 +1,12 @@
 .vscode
-data
-mask
+data/*
+!data/.keep
+mask/*
+!mask/.keep
+checkpoints/*
+!checkpoints/.keep
+.vscode
+__pycache__
+wandb
+best.pth
+tempCodeRunnerFile.py

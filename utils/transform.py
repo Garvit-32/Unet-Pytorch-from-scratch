@@ -1,6 +1,6 @@
 import cv2
 from albumentations.pytorch import ToTensor
-from albumentations import HorizontalFlip, ShiftScaleRotate, Normalize, Resize, Compose, GaussNoise
+from albumentations import HorizontalFlip, ShiftScaleRotate, Normalize, Resize, Compose, GaussNoise,ToGray
 import numpy as np
 import random
 import torch
